@@ -1,0 +1,549 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Weather Dashboard - DWS</title>
+    <style>
+        /* CSS Variables with descriptive names */
+        :root {
+            --primary-background-color: #f4f7f9;
+            --primary-text-color: #333;
+            --card-background-color: #ffffff;
+            --card-shadow-color: rgba(0, 0, 0, 0.1);
+            --button-primary-color: #4CAF50;
+            --button-hover-color: #45a049;
+            --error-message-color: #d32f2f;
+            --success-message-color: #388e3c;
+            --border-radius-standard: 8px;
+            --spacing-small: 8px;
+            --spacing-medium: 16px;
+            --spacing-large: 24px;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: var(--primary-background-color);
+            color: var(--primary-text-color);
+            padding: var(--spacing-large);
+        }
+
+        .main-container {
+            max-width: 800px;
+            margin: 0 auto;
+        }
+
+        .page-header {
+            text-align: center;
+            margin-bottom: var(--spacing-large);
+        }
+
+        .page-title {
+            font-size: 2.5em;
+            color: var(--primary-text-color);
+            margin-bottom: var(--spacing-small);
+        }
+
+        .page-subtitle {
+            font-size: 1.2em;
+            color: #666;
+        }
+
+        .weather-input-section {
+            background-color: var(--card-background-color);
+            padding: var(--spacing-large);
+            border-radius: var(--border-radius-standard);
+            box-shadow: 0 2px 4px var(--card-shadow-color);
+            margin-bottom: var(--spacing-large);
+        }
+
+        .city-input-container {
+            display: flex;
+            gap: var(--spacing-medium);
+            margin-bottom: var(--spacing-medium);
+        }
+
+        .city-name-input {
+            flex: 1;
+            padding: 12px;
+            font-size: 16px;
+            border: 1px solid #ddd;
+            border-radius: var(--border-radius-standard);
+        }
+
+        .submit-weather-button {
+            padding: 12px 24px;
+            font-size: 16px;
+            background-color: var(--button-primary-color);
+            color: white;
+            border: none;
+            border-radius: var(--border-radius-standard);
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+
+        .submit-weather-button:hover {
+            background-color: var(--button-hover-color);
+        }
+
+        .weather-display-card {
+            background-color: var(--card-background-color);
+            padding: var(--spacing-large);
+            border-radius: var(--border-radius-standard);
+            box-shadow: 0 2px 4px var(--card-shadow-color);
+            display: none;
+        }
+
+        .weather-display-card.visible {
+            display: block;
+        }
+
+        .weather-location-name {
+            font-size: 1.8em;
+            margin-bottom: var(--spacing-small);
+        }
+
+        .current-temperature {
+            font-size: 3em;
+            font-weight: bold;
+            margin-bottom: var(--spacing-small);
+        }
+
+        .weather-condition-description {
+            font-size: 1.2em;
+            color: #666;
+            margin-bottom: var(--spacing-medium);
+        }
+
+        .weather-details-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: var(--spacing-medium);
+        }
+
+        .weather-detail-item {
+            padding: var(--spacing-small);
+            background-color: var(--primary-background-color);
+            border-radius: var(--border-radius-standard);
+        }
+
+        .detail-label {
+            font-size: 0.9em;
+            color: #666;
+            margin-bottom: 4px;
+        }
+
+        .detail-value {
+            font-size: 1.2em;
+            font-weight: bold;
+        }
+
+        .status-message {
+            padding: var(--spacing-medium);
+            border-radius: var(--border-radius-standard);
+            margin-bottom: var(--spacing-medium);
+            display: none;
+        }
+
+        .status-message.visible {
+            display: block;
+        }
+
+        .status-message.error {
+            background-color: #ffebee;
+            color: var(--error-message-color);
+            border-left: 4px solid var(--error-message-color);
+        }
+
+        .status-message.success {
+            background-color: #e8f5e9;
+            color: var(--success-message-color);
+            border-left: 4px solid var(--success-message-color);
+        }
+    </style>
+</head>
+<body>
+    <div class="main-container">
+        <header class="page-header">
+            <h1 class="page-title">Weather Dashboard</h1>
+            <p class="page-subtitle">Check current weather conditions for any city</p>
+        </header>
+
+        <div class="weather-input-section">
+            <div class="city-input-container">
+                <input 
+                    type="text" 
+                    id="cityNameInput" 
+                    class="city-name-input" 
+                    placeholder="Enter city name (e.g., London, New York)"
+                    aria-label="City name input"
+                >
+                <button 
+                    id="submitWeatherButton" 
+                    class="submit-weather-button"
+                    aria-label="Get weather information"
+                >
+                    Get Weather
+                </button>
+            </div>
+            <div id="statusMessage" class="status-message"></div>
+        </div>
+
+        <div id="weatherDisplayCard" class="weather-display-card">
+            <h2 id="weatherLocationName" class="weather-location-name"></h2>
+            <div id="currentTemperature" class="current-temperature"></div>
+            <p id="weatherConditionDescription" class="weather-condition-description"></p>
+            
+            <div class="weather-details-grid">
+                <div class="weather-detail-item">
+                    <div class="detail-label">Humidity</div>
+                    <div id="humidityValue" class="detail-value">-</div>
+                </div>
+                <div class="weather-detail-item">
+                    <div class="detail-label">Wind Speed</div>
+                    <div id="windSpeedValue" class="detail-value">-</div>
+                </div>
+                <div class="weather-detail-item">
+                    <div class="detail-label">Pressure</div>
+                    <div id="pressureValue" class="detail-value">-</div>
+                </div>
+                <div class="weather-detail-item">
+                    <div class="detail-label">Feels Like</div>
+                    <div id="feelsLikeTemperature" class="detail-value">-</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Weather Dashboard Application
+        // Demonstrates descriptive variable and function naming conventions
+
+        // DOM Element References - using descriptive names
+        const cityNameInputElement = document.getElementById('cityNameInput');
+        const submitWeatherButtonElement = document.getElementById('submitWeatherButton');
+        const statusMessageElement = document.getElementById('statusMessage');
+        const weatherDisplayCardElement = document.getElementById('weatherDisplayCard');
+        const weatherLocationNameElement = document.getElementById('weatherLocationName');
+        const currentTemperatureElement = document.getElementById('currentTemperature');
+        const weatherConditionDescriptionElement = document.getElementById('weatherConditionDescription');
+        const humidityValueElement = document.getElementById('humidityValue');
+        const windSpeedValueElement = document.getElementById('windSpeedValue');
+        const pressureValueElement = document.getElementById('pressureValue');
+        const feelsLikeTemperatureElement = document.getElementById('feelsLikeTemperature');
+
+        // Application State
+        let currentWeatherData = null;
+        let isLoadingWeatherData = false;
+
+        /**
+         * Initializes the weather dashboard application
+         * Sets up event listeners and initial state
+         */
+        function initializeWeatherDashboard() {
+            setupEventListeners();
+            hideWeatherDisplayCard();
+            console.log('Weather Dashboard initialized successfully');
+        }
+
+        /**
+         * Sets up all event listeners for the application
+         */
+        function setupEventListeners() {
+            submitWeatherButtonElement.addEventListener('click', handleWeatherSubmission);
+            cityNameInputElement.addEventListener('keypress', handleCityInputKeyPress);
+        }
+
+        /**
+         * Handles the Enter key press in the city input field
+         * @param {KeyboardEvent} keyboardEvent - The keyboard event object
+         */
+        function handleCityInputKeyPress(keyboardEvent) {
+            if (keyboardEvent.key === 'Enter') {
+                handleWeatherSubmission();
+            }
+        }
+
+        /**
+         * Handles the weather data submission
+         * Validates input and triggers weather data fetch
+         */
+        async function handleWeatherSubmission() {
+            const cityName = getCityNameFromInput();
+            
+            if (!isValidCityName(cityName)) {
+                displayErrorMessage('Please enter a valid city name');
+                return;
+            }
+
+            await fetchAndDisplayWeatherData(cityName);
+        }
+
+        /**
+         * Gets the trimmed city name from the input field
+         * @returns {string} The trimmed city name
+         */
+        function getCityNameFromInput() {
+            return cityNameInputElement.value.trim();
+        }
+
+        /**
+         * Validates if the city name is not empty
+         * @param {string} cityName - The city name to validate
+         * @returns {boolean} True if valid, false otherwise
+         */
+        function isValidCityName(cityName) {
+            return cityName.length > 0;
+        }
+
+        /**
+         * Fetches weather data and displays it
+         * @param {string} cityName - The name of the city to fetch weather for
+         */
+        async function fetchAndDisplayWeatherData(cityName) {
+            if (isLoadingWeatherData) {
+                return; // Prevent multiple simultaneous requests
+            }
+
+            setLoadingState(true);
+            hideStatusMessage();
+            
+            try {
+                const weatherData = await fetchWeatherDataForCity(cityName);
+                currentWeatherData = weatherData;
+                displayWeatherInformation(weatherData);
+                displaySuccessMessage(`Weather data loaded for ${cityName}`);
+            } catch (error) {
+                handleWeatherFetchError(error);
+            } finally {
+                setLoadingState(false);
+            }
+        }
+
+        /**
+         * Simulates fetching weather data from an API
+         * In production, this would call a real weather API
+         * @param {string} cityName - The city name to fetch weather for
+         * @returns {Promise<Object>} Promise resolving to weather data
+         */
+        async function fetchWeatherDataForCity(cityName) {
+            // Simulate API call delay
+            await simulateNetworkDelay(1000);
+            
+            // Simulate weather data (in production, this would be an actual API call)
+            return generateSimulatedWeatherData(cityName);
+        }
+
+        /**
+         * Generates simulated weather data for demonstration
+         * @param {string} cityName - The city name
+         * @returns {Object} Simulated weather data object
+         */
+        function generateSimulatedWeatherData(cityName) {
+            const randomTemperature = generateRandomTemperature(15, 30);
+            const randomHumidity = generateRandomNumber(40, 80);
+            const randomWindSpeed = generateRandomNumber(5, 25);
+            const randomPressure = generateRandomNumber(1000, 1020);
+            
+            return {
+                cityName: cityName,
+                temperature: randomTemperature,
+                feelsLike: randomTemperature - generateRandomNumber(1, 3),
+                humidity: randomHumidity,
+                windSpeed: randomWindSpeed,
+                pressure: randomPressure,
+                condition: selectRandomWeatherCondition(),
+                timestamp: new Date().toISOString()
+            };
+        }
+
+        /**
+         * Generates a random temperature within a range
+         * @param {number} minimumTemperature - Minimum temperature value
+         * @param {number} maximumTemperature - Maximum temperature value
+         * @returns {number} Random temperature rounded to one decimal place
+         */
+        function generateRandomTemperature(minimumTemperature, maximumTemperature) {
+            const randomValue = Math.random() * (maximumTemperature - minimumTemperature) + minimumTemperature;
+            return Math.round(randomValue * 10) / 10;
+        }
+
+        /**
+         * Generates a random integer within a range
+         * @param {number} minimumValue - Minimum value (inclusive)
+         * @param {number} maximumValue - Maximum value (inclusive)
+         * @returns {number} Random integer
+         */
+        function generateRandomNumber(minimumValue, maximumValue) {
+            return Math.floor(Math.random() * (maximumValue - minimumValue + 1)) + minimumValue;
+        }
+
+        /**
+         * Selects a random weather condition from predefined options
+         * @returns {string} Random weather condition description
+         */
+        function selectRandomWeatherCondition() {
+            const weatherConditionOptions = [
+                'Sunny',
+                'Partly Cloudy',
+                'Cloudy',
+                'Overcast',
+                'Light Rain',
+                'Clear Sky'
+            ];
+            
+            const randomIndex = Math.floor(Math.random() * weatherConditionOptions.length);
+            return weatherConditionOptions[randomIndex];
+        }
+
+        /**
+         * Simulates network delay for API calls
+         * @param {number} delayInMilliseconds - Delay duration in milliseconds
+         * @returns {Promise<void>} Promise that resolves after the delay
+         */
+        function simulateNetworkDelay(delayInMilliseconds) {
+            return new Promise(resolve => setTimeout(resolve, delayInMilliseconds));
+        }
+
+        /**
+         * Displays weather information on the screen
+         * @param {Object} weatherData - The weather data object to display
+         */
+        function displayWeatherInformation(weatherData) {
+            updateWeatherLocationName(weatherData.cityName);
+            updateCurrentTemperature(weatherData.temperature);
+            updateWeatherConditionDescription(weatherData.condition);
+            updateHumidityValue(weatherData.humidity);
+            updateWindSpeedValue(weatherData.windSpeed);
+            updatePressureValue(weatherData.pressure);
+            updateFeelsLikeTemperature(weatherData.feelsLike);
+            
+            showWeatherDisplayCard();
+        }
+
+        /**
+         * Updates the weather location name display
+         * @param {string} cityName - The city name to display
+         */
+        function updateWeatherLocationName(cityName) {
+            weatherLocationNameElement.textContent = cityName;
+        }
+
+        /**
+         * Updates the current temperature display
+         * @param {number} temperature - The temperature value
+         */
+        function updateCurrentTemperature(temperature) {
+            currentTemperatureElement.textContent = `${temperature}°C`;
+        }
+
+        /**
+         * Updates the weather condition description
+         * @param {string} condition - The weather condition
+         */
+        function updateWeatherConditionDescription(condition) {
+            weatherConditionDescriptionElement.textContent = condition;
+        }
+
+        /**
+         * Updates the humidity value display
+         * @param {number} humidity - The humidity percentage
+         */
+        function updateHumidityValue(humidity) {
+            humidityValueElement.textContent = `${humidity}%`;
+        }
+
+        /**
+         * Updates the wind speed value display
+         * @param {number} windSpeed - The wind speed in km/h
+         */
+        function updateWindSpeedValue(windSpeed) {
+            windSpeedValueElement.textContent = `${windSpeed} km/h`;
+        }
+
+        /**
+         * Updates the pressure value display
+         * @param {number} pressure - The atmospheric pressure in hPa
+         */
+        function updatePressureValue(pressure) {
+            pressureValueElement.textContent = `${pressure} hPa`;
+        }
+
+        /**
+         * Updates the "feels like" temperature display
+         * @param {number} feelsLike - The feels like temperature
+         */
+        function updateFeelsLikeTemperature(feelsLike) {
+            feelsLikeTemperatureElement.textContent = `${feelsLike}°C`;
+        }
+
+        /**
+         * Shows the weather display card
+         */
+        function showWeatherDisplayCard() {
+            weatherDisplayCardElement.classList.add('visible');
+        }
+
+        /**
+         * Hides the weather display card
+         */
+        function hideWeatherDisplayCard() {
+            weatherDisplayCardElement.classList.remove('visible');
+        }
+
+        /**
+         * Displays an error message to the user
+         * @param {string} errorMessage - The error message to display
+         */
+        function displayErrorMessage(errorMessage) {
+            statusMessageElement.textContent = errorMessage;
+            statusMessageElement.className = 'status-message error visible';
+        }
+
+        /**
+         * Displays a success message to the user
+         * @param {string} successMessage - The success message to display
+         */
+        function displaySuccessMessage(successMessage) {
+            statusMessageElement.textContent = successMessage;
+            statusMessageElement.className = 'status-message success visible';
+        }
+
+        /**
+         * Hides the status message
+         */
+        function hideStatusMessage() {
+            statusMessageElement.classList.remove('visible');
+        }
+
+        /**
+         * Handles errors that occur during weather data fetching
+         * @param {Error} error - The error object
+         */
+        function handleWeatherFetchError(error) {
+            console.error('Error fetching weather data:', error);
+            displayErrorMessage('Failed to fetch weather data. Please try again.');
+            hideWeatherDisplayCard();
+        }
+
+        /**
+         * Sets the loading state of the application
+         * @param {boolean} isLoading - Whether the app is loading
+         */
+        function setLoadingState(isLoading) {
+            isLoadingWeatherData = isLoading;
+            submitWeatherButtonElement.disabled = isLoading;
+            submitWeatherButtonElement.textContent = isLoading ? 'Loading...' : 'Get Weather';
+        }
+
+        // Initialize the application when the DOM is fully loaded
+        document.addEventListener('DOMContentLoaded', initializeWeatherDashboard);
+    </script>
+</body>
+</html>

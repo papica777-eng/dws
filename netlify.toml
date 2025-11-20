@@ -1,0 +1,45 @@
+# Netlify Configuration File
+# Demonstrates descriptive naming in configuration
+
+[build]
+  # Publish directory - where the built site files are located
+  publish = "."
+  
+  # Build command - no build process needed for static HTML
+  command = "echo 'No build required for static site'"
+
+# Production deployment settings
+[context.production]
+  # Production environment variables (example)
+  environment = { NODE_ENV = "production" }
+
+# Deploy preview settings  
+[context.deploy-preview]
+  # Preview deployment configuration
+  environment = { NODE_ENV = "preview" }
+
+# Branch deployment settings
+[context.branch-deploy]
+  # Branch deployment configuration
+  environment = { NODE_ENV = "development" }
+
+# Headers for security and performance
+[[headers]]
+  # Apply these headers to all pages
+  for = "/*"
+  
+  [headers.values]
+    # Security headers with descriptive purposes
+    X-Frame-Options = "DENY"
+    X-Content-Type-Options = "nosniff"
+    X-XSS-Protection = "1; mode=block"
+    Referrer-Policy = "strict-origin-when-cross-origin"
+    
+    # Performance headers
+    Cache-Control = "public, max-age=3600"
+
+# Custom redirects (if needed in the future)
+# [[redirects]]
+#   from = "/old-path"
+#   to = "/new-path"
+#   status = 301
